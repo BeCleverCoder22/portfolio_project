@@ -11,3 +11,4 @@ django-debug-toolbar>=4.0  # Debug en développement
 django-extensions>=3.2     # Extensions utiles
 whitenoise>=6.5.0          # Servir les fichiers statiques en production
 gunicorn>=21.0.0           # Serveur WSGI pour production
+dj-database-url
