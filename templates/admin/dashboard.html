@@ -1,0 +1,444 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Administrateur{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+        border-left: 5px solid;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card.blue { border-left-color: #3b82f6; }
+    .stat-card.green { border-left-color: #10b981; }
+    .stat-card.purple { border-left-color: #8b5cf6; }
+    .stat-card.orange { border-left-color: #f59e0b; }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-card.blue .stat-icon { color: #3b82f6; }
+    .stat-card.green .stat-icon { color: #10b981; }
+    .stat-card.purple .stat-icon { color: #8b5cf6; }
+    .stat-card.orange .stat-icon { color: #f59e0b; }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .stat-label {
+        color: #64748b;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow-x: auto;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table thead {
+        background: var(--light-bg);
+    }
+    
+    .badge-status {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+    
+    .badge-read {
+        background-color: #10b981;
+        color: white;
+    }
+    
+    .badge-unread {
+        background-color: #ef4444;
+        color: white;
+    }
+    
+    .quick-action-btn {
+        display: block;
+        width: 100%;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+        text-align: left;
+        transition: all 0.3s ease;
+        border: 2px solid #e2e8f0;
+        background: white;
+        color: var(--dark-bg);
+    }
+    
+    .quick-action-btn:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
+        color: white;
+        transform: translateX(5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="dashboard-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-chart-line"></i> Dashboard Administrateur</h1>
+                <p class="mb-0">Vue d'ensemble de votre portfolio</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'admin:index' %}" class="btn btn-light">
+                    <i class="fas fa-cog"></i> Administration Django
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card blue text-center">
+                <div class="stat-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <h2 class="stat-number">{{ total_projects }}</h2>
+                <p class="stat-label">Projets Total</p>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card green text-center">
+                <div class="stat-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h2 class="stat-number">{{ unread_messages }}</h2>
+                <p class="stat-label">Messages Non Lus</p>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card purple text-center">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h2 class="stat-number">{{ visits_today }}</h2>
+                <p class="stat-label">Visites Aujourd'hui</p>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card orange text-center">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h2 class="stat-number">{{ visits_week }}</h2>
+                <p class="stat-label">Visites Cette Semaine</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Traffic Overview -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="chart-container">
+                <h3 class="mb-4">
+                    <i class="fas fa-chart-area text-primary"></i> Aperçu du Trafic
+                </h3>
+                <canvas id="trafficChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h3 class="mb-4">
+                    <i class="fas fa-tasks text-primary"></i> Actions Rapides
+                </h3>
+                <a href="{% url 'admin:portfolio_project_add' %}" class="quick-action-btn">
+                    <i class="fas fa-plus-circle"></i> Ajouter un Projet
+                </a>
+                <a href="{% url 'admin:portfolio_skill_add' %}" class="quick-action-btn">
+                    <i class="fas fa-code"></i> Ajouter une Compétence
+                </a>
+                <a href="{% url 'admin:portfolio_experience_add' %}" class="quick-action-btn">
+                    <i class="fas fa-briefcase"></i> Ajouter une Expérience
+                </a>
+                <a href="{% url 'admin:portfolio_contact_changelist' %}" class="quick-action-btn">
+                    <i class="fas fa-envelope-open-text"></i> Voir les Messages
+                </a>
+                <a href="{% url 'admin:portfolio_sitesettings_changelist' %}" class="quick-action-btn">
+                    <i class="fas fa-cog"></i> Paramètres du Site
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Projects -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="table-container">
+                <h3 class="mb-4">
+                    <i class="fas fa-fire text-danger"></i> Projets les Plus Vus
+                </h3>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Projet</th>
+                            <th>Statut</th>
+                            <th>Vues</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in top_projects %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'admin:portfolio_project_change' project.id %}">
+                                    {{ project.title }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if project.featured %}
+                                <span class="badge bg-warning">★ Mis en avant</span>
+                                {% endif %}
+                                <span class="badge bg-info">{{ project.get_status_display }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ project.views }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">Aucun projet disponible</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="table-container">
+                <h3 class="mb-4">
+                    <i class="fas fa-comments text-primary"></i> Messages Récents
+                </h3>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>De</th>
+                            <th>Sujet</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for message in recent_messages %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'admin:portfolio_contact_change' message.id %}">
+                                    {{ message.name }}
+                                </a>
+                            </td>
+                            <td>{{ message.subject|truncatewords:5 }}</td>
+                            <td>
+                                {% if message.read %}
+                                <span class="badge-status badge-read">Lu</span>
+                                {% else %}
+                                <span class="badge-status badge-unread">Non lu</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ message.created_at|date:"d/m/Y H:i" }}</small>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">Aucun message</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Pages -->
+    <div class="row">
+        <div class="col-12">
+            <div class="table-container">
+                <h3 class="mb-4">
+                    <i class="fas fa-eye text-success"></i> Pages les Plus Visitées
+                </h3>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Page</th>
+                            <th>Nombre de Visites</th>
+                            <th>Pourcentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for page in popular_pages %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><code>{{ page.page }}</code></td>
+                            <td><span class="badge bg-primary">{{ page.count }}</span></td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         data-width="{{ page.count|default:0 }}" 
+                                         aria-valuenow="{{ page.count|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">Aucune donnée disponible</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Summary -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="chart-container text-center">
+                <h4>Total Messages</h4>
+                <h2 class="text-primary">{{ total_messages }}</h2>
+                <p class="text-muted">{{ unread_messages }} non lus</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-container text-center">
+                <h4>Visites ce Mois</h4>
+                <h2 class="text-success">{{ visits_month }}</h2>
+                <p class="text-muted">{{ visits_week }} cette semaine</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-container text-center">
+                <h4>Taux d'Engagement</h4>
+                <h2 class="text-warning">
+                    {% widthratio visits_week visits_month 100 %}%
+                </h2>
+                <p class="text-muted">Semaine vs Mois</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ visits_week|json_script:"visits-week-data" }}
+{{ visits_today|json_script:"visits-today-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Set progress bar widths
+    document.querySelectorAll('.progress-bar[data-width]').forEach(function(bar) {
+        const width = bar.getAttribute('data-width');
+        bar.style.width = width + '%';
+    });
+    
+    // Traffic Chart
+    const ctx = document.getElementById('trafficChart');
+    
+    if (ctx) {
+        const visitsWeekData = document.getElementById('visits-week-data');
+        const visitsTodayData = document.getElementById('visits-today-data');
+        
+        const visitsWeek = visitsWeekData ? JSON.parse(visitsWeekData.textContent) : 0;
+        const visitsToday = visitsTodayData ? JSON.parse(visitsTodayData.textContent) : 0;
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                datasets: [{
+                    label: 'Visites',
+                    data: [
+                        Math.floor(visitsWeek / 7),
+                        Math.floor(visitsWeek / 6),
+                        Math.floor(visitsWeek / 5),
+                        Math.floor(visitsWeek / 4),
+                        Math.floor(visitsWeek / 3),
+                        visitsToday,
+                        Math.floor(visitsWeek / 2)
+                    ],
+                    borderColor: 'rgb(37, 99, 235)',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Auto-refresh dashboard every 5 minutes
+    setTimeout(function() {
+        location.reload();
+    }, 300000);
+</script>
+{% endblock %}

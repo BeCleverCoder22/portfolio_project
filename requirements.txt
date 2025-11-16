@@ -1,0 +1,13 @@
+Django>=5.0,<6.0
+Pillow>=10.0.0
+django-crispy-forms>=2.0
+crispy-bootstrap5>=0.7
+django-ckeditor>=6.0
+python-dotenv>=1.0.0
+mysqlclient>=2.1.0
+
+# Optionnelles pour le développement
+django-debug-toolbar>=4.0  # Debug en développement
+django-extensions>=3.2     # Extensions utiles
+whitenoise>=6.5.0          # Servir les fichiers statiques en production
+gunicorn>=21.0.0           # Serveur WSGI pour production
