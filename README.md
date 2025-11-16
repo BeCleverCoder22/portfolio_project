@@ -269,6 +269,6 @@ Pour toute question ou problème :
 
 ---
 
-**Développé avec ❤️ par [BeCleverCoder22]**
+**Développé avec ❤️ par BeCleverCoder22**
 
 *Un portfolio moderne pour développeurs ambitieux*
